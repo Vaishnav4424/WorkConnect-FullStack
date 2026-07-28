@@ -10,7 +10,11 @@ import com.workconnect.entities.JobApplication;
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
 
     List<JobApplication> findByWorkerProfileWorkerId(Long workerId);
+    
+    List<JobApplication> findByJobPostJobId(Long jobId);
 
     Optional<JobApplication> findByJobPostJobIdAndWorkerProfileWorkerId(Long jobId, Long workerId);
+    
+    boolean existsByWorkerProfileWorkerIdAndJobPostJobId(Long workerId, Long jobId);
 
 }

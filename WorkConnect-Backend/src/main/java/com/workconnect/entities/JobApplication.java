@@ -3,7 +3,6 @@ package com.workconnect.entities;
 import java.time.LocalDate;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 @Entity
@@ -25,9 +24,8 @@ public class JobApplication {
     @Column(name = "application_id")
     private Long applicationId;
 
-    @NotBlank
     @Lob
-    @Column(name = "proposal")
+    @Column(name = "proposal", nullable = false)
     private String proposal;
 
     @Column(name = "applied_date", nullable = false, updatable = false)

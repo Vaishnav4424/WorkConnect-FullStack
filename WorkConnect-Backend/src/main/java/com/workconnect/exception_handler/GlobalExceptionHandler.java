@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.workconnect.custom_exceptions.AuthenticationException;
+import com.workconnect.custom_exceptions.BadRequestException;
 import com.workconnect.custom_exceptions.DuplicateResourceException;
 import com.workconnect.custom_exceptions.InvalidInputException;
 import com.workconnect.custom_exceptions.ResourceNotFoundException;
@@ -21,6 +22,19 @@ import com.workconnect.dtos.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+	
+	@ExceptionHandler(BadRequestException.class)
+	public ResponseEntity<ErrorResponse> handleBadRequestException(BadRequestException ex) {
+
+	    ErrorResponse response = new ErrorResponse(
+	            LocalDateTime.now(),
+	            "Failed",
+	            ex.getMessage(),
+	            null
+	    );
+
+	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+	}
 
     // Resource Not Found Exception
     @ExceptionHandler(ResourceNotFoundException.class)
