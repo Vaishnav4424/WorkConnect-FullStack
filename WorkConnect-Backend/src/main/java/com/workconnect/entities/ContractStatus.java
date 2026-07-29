@@ -2,7 +2,7 @@ package com.workconnect.entities;
 
 public enum ContractStatus {
     ACTIVE,
-    CANCELLED,
+    IN_PROGRESS,
     COMPLETED,
-    TERMINATED
+    CANCELLED
 }

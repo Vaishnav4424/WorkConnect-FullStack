@@ -9,5 +9,9 @@ import com.workconnect.entities.Contract;
 public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     List<Contract> findByJobApplicationWorkerProfileWorkerId(Long workerId);
+    
+    boolean existsByJobApplicationApplicationId(long applicatoinId);
+
+	List<Contract> findByJobApplicationJobPostEmployerProfileEmployerId(Long employerId);
 
 }
