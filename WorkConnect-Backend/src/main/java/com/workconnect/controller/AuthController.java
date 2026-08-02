@@ -14,29 +14,51 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class AuthController {
 
+
     private final AuthenticationService authenticationService;
 
-    @PostMapping("/signUp")
-    @Operation(summary = "Register a new user")
-    public ResponseEntity<ApiResponse> userSignUp(@Valid @RequestBody RegisterRequestDTO request) {
 
-        ApiResponse response = authenticationService.registerUser(request);
-        
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @PostMapping("/signup")
+    @Operation(
+            summary = "Register a new user",
+            description = "Creates a new WorkConnect user account"
+    )
+    public ResponseEntity<ApiResponse> userSignup(
+            @Valid @RequestBody RegisterRequestDTO request) {
+
+
+        ApiResponse response =
+                authenticationService.registerUser(request);
+
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 
-    @PostMapping("/signIn")
-    @Operation(summary = "Authenticate user")
-    public ResponseEntity<LoginResponseDTO> userSignIn(@Valid @RequestBody LoginRequestDTO request) {
 
-        LoginResponseDTO response = authenticationService.authenticateUser(request);
-        
-        return ResponseEntity.ok(response);
+
+    @PostMapping("/signin")
+    @Operation(
+            summary = "User login",
+            description = "Authenticates user and returns JWT token"
+    )
+    public ResponseEntity<LoginResponseDTO> userSignin(
+            @Valid @RequestBody LoginRequestDTO request) {
+
+
+        LoginResponseDTO response =
+                authenticationService.authenticateUser(request);
+
+
+        return ResponseEntity
+                .ok(response);
     }
-    
+
 }
