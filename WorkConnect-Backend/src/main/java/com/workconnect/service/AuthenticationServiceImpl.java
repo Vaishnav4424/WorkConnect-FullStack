@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-
     private final UserRepository userRepo;
 
     private final ModelMapper mapper;
@@ -34,16 +33,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JwtUtils jwtUtils;
 
-
-
     @Override
     public ApiResponse registerUser(RegisterRequestDTO request) {
 
 
         if(userRepo.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException(
-                    "Email is already registered"
-            );
+            throw new DuplicateResourceException("Email is already registered");
         }
 
 
@@ -51,17 +46,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
         // Encrypt password
-        user.setPassword(
-                passwordEncoder.encode(request.getPassword())
-        );
-
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
 
         userRepo.save(user);
 
-
-        return ApiResponse.success(
-                "User registered successfully"
-        );
+        return ApiResponse.success("User registered successfully");
     }
 
 
@@ -69,66 +58,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
 
     @Override
-    public LoginResponseDTO authenticateUser(
-            LoginRequestDTO request) {
+    public LoginResponseDTO authenticateUser(LoginRequestDTO request) {
 
 
         // Find user using email
         User user = userRepo.findByEmail(request.getEmail())
-                .orElseThrow(() ->
-                    new ResourceNotFoundException(
-                        "Invalid email or password"
-                    )
-                );
-
-
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password"));
 
         // Verify password
-        if(!passwordEncoder.matches(
-                request.getPassword(),
-                user.getPassword())) {
-
-
-            throw new ResourceNotFoundException(
-                    "Invalid email or password"
-            );
+        if(!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new ResourceNotFoundException("Invalid email or password");
         }
 
-
-
         // Create UserDetails
-        CustomUserDetails userDetails =
-                new CustomUserDetails(user);
-
-
+        CustomUserDetails userDetails = new CustomUserDetails(user);
 
         // Generate JWT
-        String token =
-                jwtUtils.generateToken(userDetails);
+        String token = jwtUtils.generateToken(userDetails);
 
-
-
-        LoginResponseDTO response =
-                new LoginResponseDTO();
-
+        LoginResponseDTO response = new LoginResponseDTO();
 
         response.setToken(token);
 
-        response.setMessage(
-                "Login successful"
-        );
-
+        response.setMessage("Login successful");
 
         return response;
     }
 
 
-
-
-
     @Override
-    public ApiResponse changePassword(
-            ChangePasswordDTO request) {
+    public ApiResponse changePassword(ChangePasswordDTO request) {
 
         return null;
     }

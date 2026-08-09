@@ -1,5 +1,7 @@
 package com.workconnect.security;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -13,6 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,60 +29,129 @@ public class SecurityConfiguration {
 
     private final CustomJWTVerificationFilter customJWTVerificationFilter;
 
+
+    // =========================================================
+    // SECURITY FILTER CHAIN
+    // =========================================================
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // Disable CSRF
+
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
                 .csrf(csrf -> csrf.disable())
 
-                // Stateless Session
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Authorization Rules
                 .authorizeHttpRequests(request -> request
 
-                        // Public Endpoints
+
+                        // =================================================
+                        // PUBLIC ENDPOINTS
+                        // =================================================
+
                         .requestMatchers(
                                 "/users/signup",
                                 "/users/signin",
+
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/webjars/**"
                         ).permitAll()
 
-                        // Allow CORS preflight requests
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Employer APIs
+                        // =================================================
+                        // CORS PREFLIGHT
+                        // =================================================
+
+                        .requestMatchers(HttpMethod.OPTIONS,"/**").permitAll()
+
+                        // =================================================
+                        // EMPLOYER APIs
+                        // =================================================
+
                         .requestMatchers(HttpMethod.POST, "/employers/profile").hasRole("EMPLOYER")
+
                         .requestMatchers(HttpMethod.PUT, "/employers/profile").hasRole("EMPLOYER")
 
-                        .requestMatchers(HttpMethod.POST, "/jobs/**").hasRole("EMPLOYER")
-                        .requestMatchers(HttpMethod.PUT, "/jobs/**").hasRole("EMPLOYER")
-                        .requestMatchers(HttpMethod.DELETE, "/jobs/**").hasRole("EMPLOYER")
 
-                        // Worker APIs
+                        .requestMatchers(HttpMethod.POST, "/jobs/**").hasRole("EMPLOYER")
+
+                        .requestMatchers(HttpMethod.PUT, "/jobs/**").hasRole("EMPLOYER")
+
+                        .requestMatchers(HttpMethod.DELETE,"/jobs/**").hasRole("EMPLOYER")
+
+
+                        // =================================================
+                        // WORKER APIs
+                        // =================================================
+
                         .requestMatchers(HttpMethod.POST, "/workers/profile").hasRole("WORKER")
+
                         .requestMatchers(HttpMethod.PUT, "/workers/profile").hasRole("WORKER")
 
-                        .requestMatchers(HttpMethod.POST, "/applications/**").hasRole("WORKER")
-                        .requestMatchers(HttpMethod.DELETE, "/applications/**").hasRole("WORKER")
+                        .requestMatchers(HttpMethod.POST,"/applications/**").hasRole("WORKER")
 
-                        .requestMatchers(HttpMethod.GET, "/workers/**").hasRole("WORKER")
+                        .requestMatchers(HttpMethod.DELETE,"/applications/**").hasRole("WORKER")
 
-                        // Admin APIs
+
+                        .requestMatchers(HttpMethod.GET,"/workers/**").hasRole("WORKER")
+
+
+                        // =================================================
+                        // ADMIN APIs
+                        // =================================================
+
                         .requestMatchers("/admin/**").hasRole("ADMIN")
 
-                        // All remaining endpoints require authentication
+
+                        // =================================================
+                        // ALL OTHER APIs
+                        // =================================================
+
                         .anyRequest().authenticated()
                 );
 
-        // JWT Filter
         http.addFilterBefore(customJWTVerificationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    @Bean
+    CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // React frontend URL
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+
+        // Allowed HTTP methods
+        configuration.setAllowedMethods(
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS"
+                )
+        );
+
+        // Allowed headers
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Allow credentials
+        configuration.setAllowCredentials(true);
+
+        // Register CORS configuration
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 
     @Bean
@@ -86,8 +160,8 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    AuthenticationManager authenticationManager(
-            AuthenticationConfiguration configuration) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 }
+
