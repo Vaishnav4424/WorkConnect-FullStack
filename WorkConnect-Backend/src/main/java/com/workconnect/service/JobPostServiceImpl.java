@@ -89,6 +89,8 @@ public class JobPostServiceImpl implements JobPostService {
     private JobResponseDTO convertToDTO(JobPost jobPost) {
 
         JobResponseDTO dto = modelMapper.map(jobPost, JobResponseDTO.class);
+        
+        dto.setJobPostId(jobPost.getJobId());
 
         dto.setEmployerId(jobPost.getEmployerProfile().getEmployerId());
 

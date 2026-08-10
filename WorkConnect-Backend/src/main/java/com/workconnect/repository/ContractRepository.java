@@ -10,7 +10,7 @@ public interface ContractRepository extends JpaRepository<Contract, Long> {
 
     List<Contract> findByJobApplicationWorkerProfileWorkerId(Long workerId);
     
-    boolean existsByJobApplicationApplicationId(long applicatoinId);
+    boolean existsByJobApplicationApplicationId(long applicationId);
 
 	List<Contract> findByJobApplicationJobPostEmployerProfileEmployerId(Long employerId);
 

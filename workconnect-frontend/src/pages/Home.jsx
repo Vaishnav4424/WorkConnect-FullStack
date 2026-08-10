@@ -1,245 +1,87 @@
 import { Link } from "react-router-dom";
-import Navbar from "../components/Navbar";
+import { useAuth } from "../context/AuthContext";
 
 function Home() {
+    const { user, isAuthenticated } = useAuth();
+    const dashboardPath = user?.role === "EMPLOYER"
+        ? "/employer/dashboard"
+        : "/worker/dashboard";
+
     return (
         <>
-            <Navbar />
-
-            {/* ================= HERO SECTION ================= */}
-            <section className="bg-light py-5">
+            <section className="hero-section">
                 <div className="container py-5">
-
-                    <div className="row align-items-center">
-
-                        {/* Left Content */}
+                    <div className="row align-items-center py-lg-5 g-5">
                         <div className="col-lg-7">
-
-                            <h1 className="display-4 fw-bold mb-3">
-                                Find the Right Work.
-                                <br />
-                                Find the Right Talent.
+                            <span className="eyebrow">Local skills. Real opportunities.</span>
+                            <h1 className="display-3 fw-bold mt-3 mb-4">
+                                Find the right work.<br />Find the right talent.
                             </h1>
-
-                            <p className="lead text-muted mb-4">
-                                WorkConnect is a job and freelancing
-                                marketplace that connects skilled workers
-                                with employers looking for the right talent.
+                            <p className="lead text-secondary mb-4">
+                                WorkConnect brings skilled workers and employers together,
+                                from the first job post to contracts and payments.
                             </p>
-
-                            <div className="d-flex gap-3">
-
-                                <Link
-                                    to="/worker/jobs"
-                                    className="btn btn-primary btn-lg"
-                                >
-                                    Find Jobs
-                                </Link>
-
-                                <Link
-                                    to="/register"
-                                    className="btn btn-outline-dark btn-lg"
-                                >
-                                    Post a Job
-                                </Link>
-
+                            <div className="d-flex flex-wrap gap-3">
+                                {isAuthenticated ? (
+                                    <Link to={dashboardPath} className="btn btn-primary btn-lg">
+                                        Open Dashboard
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link to="/register" className="btn btn-primary btn-lg">
+                                            Create an Account
+                                        </Link>
+                                        <Link to="/login" className="btn btn-outline-dark btn-lg">
+                                            Login
+                                        </Link>
+                                    </>
+                                )}
                             </div>
-
                         </div>
-
-                        {/* Right Content */}
-                        <div className="col-lg-5 text-center mt-5 mt-lg-0">
-
-                            <div className="bg-white rounded shadow p-5">
-
-                                <h2 className="fw-bold mb-3">
-                                    WorkConnect
-                                </h2>
-
-                                <p className="text-muted">
-                                    Connect. Work. Grow.
+                        <div className="col-lg-5">
+                            <div className="hero-card shadow-lg">
+                                <div className="hero-card-icon">WC</div>
+                                <h2 className="h3 fw-bold">One simple workspace</h2>
+                                <p className="text-secondary mb-4">
+                                    Search and post jobs, manage applications, create
+                                    contracts, and follow payment progress.
                                 </p>
-
-                                <div className="row mt-4">
-
-                                    <div className="col-4">
-                                        <h4 className="fw-bold">100+</h4>
-                                        <small className="text-muted">
-                                            Jobs
-                                        </small>
-                                    </div>
-
-                                    <div className="col-4">
-                                        <h4 className="fw-bold">50+</h4>
-                                        <small className="text-muted">
-                                            Workers
-                                        </small>
-                                    </div>
-
-                                    <div className="col-4">
-                                        <h4 className="fw-bold">25+</h4>
-                                        <small className="text-muted">
-                                            Employers
-                                        </small>
-                                    </div>
-
+                                <div className="d-grid gap-3">
+                                    <div className="feature-line"><span>1</span> Create your role-based profile</div>
+                                    <div className="feature-line"><span>2</span> Connect through real job applications</div>
+                                    <div className="feature-line"><span>3</span> Manage work from contract to payment</div>
                                 </div>
-
                             </div>
-
                         </div>
-
                     </div>
-
                 </div>
             </section>
 
-
-            {/* ================= HOW IT WORKS ================= */}
-            <section className="py-5">
-
-                <div className="container">
-
+            <section className="py-5 bg-white">
+                <div className="container py-4">
                     <div className="text-center mb-5">
-
-                        <h2 className="fw-bold">
-                            How WorkConnect Works
-                        </h2>
-
-                        <p className="text-muted">
-                            A simple way to connect workers and employers.
-                        </p>
-
+                        <span className="eyebrow">How it works</span>
+                        <h2 className="fw-bold mt-2">A clear path from need to completion</h2>
                     </div>
-
-
                     <div className="row g-4">
-
-                        {/* Step 1 */}
-                        <div className="col-md-4">
-
-                            <div className="card h-100 border-0 shadow-sm">
-
-                                <div className="card-body text-center p-4">
-
-                                    <div className="display-5 mb-3">
-                                        👤
+                        {[
+                            ["Create your profile", "Share your skills as a worker or your organization details as an employer."],
+                            ["Find the right match", "Search open jobs or review applicants using live backend data."],
+                            ["Work with confidence", "Track contracts, statuses, and payment history in one place."]
+                        ].map(([title, text], index) => (
+                            <div className="col-md-4" key={title}>
+                                <div className="card feature-card h-100 border-0 shadow-sm">
+                                    <div className="card-body p-4">
+                                        <div className="step-number">0{index + 1}</div>
+                                        <h3 className="h5 fw-bold mt-4">{title}</h3>
+                                        <p className="text-secondary mb-0">{text}</p>
                                     </div>
-
-                                    <h4 className="fw-bold">
-                                        Create Profile
-                                    </h4>
-
-                                    <p className="text-muted">
-                                        Create your profile and showcase
-                                        your skills, experience and expertise.
-                                    </p>
-
                                 </div>
-
                             </div>
-
-                        </div>
-
-
-                        {/* Step 2 */}
-                        <div className="col-md-4">
-
-                            <div className="card h-100 border-0 shadow-sm">
-
-                                <div className="card-body text-center p-4">
-
-                                    <div className="display-5 mb-3">
-                                        🔍
-                                    </div>
-
-                                    <h4 className="fw-bold">
-                                        Find Opportunities
-                                    </h4>
-
-                                    <p className="text-muted">
-                                        Search for jobs based on your skills,
-                                        location, category and budget.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-                        {/* Step 3 */}
-                        <div className="col-md-4">
-
-                            <div className="card h-100 border-0 shadow-sm">
-
-                                <div className="card-body text-center p-4">
-
-                                    <div className="display-5 mb-3">
-                                        🤝
-                                    </div>
-
-                                    <h4 className="fw-bold">
-                                        Start Working
-                                    </h4>
-
-                                    <p className="text-muted">
-                                        Connect with employers, get hired
-                                        and manage your contracts.
-                                    </p>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
+                        ))}
                     </div>
-
                 </div>
-
             </section>
-
-
-            {/* ================= CTA SECTION ================= */}
-            <section className="bg-dark text-white py-5">
-
-                <div className="container text-center">
-
-                    <h2 className="fw-bold mb-3">
-                        Ready to Get Started?
-                    </h2>
-
-                    <p className="mb-4">
-                        Join WorkConnect and find your next opportunity.
-                    </p>
-
-                    <Link
-                        to="/register"
-                        className="btn btn-primary btn-lg"
-                    >
-                        Create Your Account
-                    </Link>
-
-                </div>
-
-            </section>
-
-
-            {/* ================= FOOTER ================= */}
-            <footer className="bg-black text-white py-4">
-
-                <div className="container text-center">
-
-                    <p className="mb-0">
-                        © 2026 WorkConnect. All Rights Reserved.
-                    </p>
-
-                </div>
-
-            </footer>
-
         </>
     );
 }

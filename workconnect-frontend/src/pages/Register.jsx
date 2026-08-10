@@ -1,570 +1,157 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-
-import Navbar from "../components/Navbar";
+import { getApiErrorMessage } from "../services/api";
 import { registerUser } from "../services/authService";
 
+const initialForm = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phoneNumber: "",
+    address: "",
+    role: "WORKER"
+};
+
 function Register() {
-
     const navigate = useNavigate();
-
-    const [formData, setFormData] = useState({
-        firstName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        phoneNumber: "",
-        address: "",
-        role: "WORKER"
-    });
-
+    const [formData, setFormData] = useState(initialForm);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
 
-
-    // Handle input change
-    const handleChange = (e) => {
-
-        const { name, value } = e.target;
-
-        setFormData({
-            ...formData,
-            [name]: value
-        });
+    const handleChange = (event) => {
+        const { name, value } = event.target;
+        setFormData({ ...formData, [name]: value });
     };
 
+    const validate = () => {
+        const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,20}$/;
 
-    // Handle registration
-    const handleSubmit = async (e) => {
+        if (!formData.firstName.trim() || !formData.lastName.trim() ||
+            !formData.email.trim() || !formData.address.trim()) {
+            return "Please fill in all required fields.";
+        }
+        if (formData.firstName.trim().length > 30 || formData.lastName.trim().length > 30) {
+            return "First and last names cannot exceed 30 characters.";
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+            return "Please enter a valid email address.";
+        }
+        if (formData.address.trim().length > 255) {
+            return "Address cannot exceed 255 characters.";
+        }
+        if (!passwordPattern.test(formData.password)) {
+            return "Password must be 8-20 characters with uppercase, lowercase, a number, and one of @ # $ % ^ & + = !.";
+        }
+        if (formData.password !== formData.confirmPassword) {
+            return "Passwords do not match.";
+        }
+        if (!/^\d{10}$/.test(formData.phoneNumber)) {
+            return "Phone number must contain exactly 10 digits.";
+        }
+        return "";
+    };
 
-        e.preventDefault();
-
+    const handleSubmit = async (event) => {
+        event.preventDefault();
         setError("");
         setSuccess("");
+        const validationError = validate();
 
-
-        // ================= VALIDATION =================
-
-        if (
-            !formData.firstName ||
-            !formData.lastName ||
-            !formData.email ||
-            !formData.password ||
-            !formData.confirmPassword ||
-            !formData.phoneNumber ||
-            !formData.address ||
-            !formData.role
-        ) {
-            setError("Please fill all required fields.");
+        if (validationError) {
+            setError(validationError);
             return;
         }
-
-
-        // Password match
-        if (
-            formData.password !==
-            formData.confirmPassword
-        ) {
-            setError("Passwords do not match.");
-            return;
-        }
-
-
-        // Password validation
-        const passwordRegex =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$%^&+=!]).{8,20}$/;
-
-        if (!passwordRegex.test(formData.password)) {
-
-            setError(
-                "Password must contain 8-20 characters with at least one uppercase letter, one lowercase letter, one digit, and one special character."
-            );
-
-            return;
-        }
-
-
-        // Phone number validation
-        const phoneRegex = /^[0-9]{10}$/;
-
-        if (!phoneRegex.test(formData.phoneNumber)) {
-
-            setError(
-                "Phone number must contain exactly 10 digits."
-            );
-
-            return;
-        }
-
 
         try {
-
             setLoading(true);
-
-
-            // ================= REQUEST DATA =================
-            // confirmPassword is NOT sent to backend
-
-            const registrationData = {
-
-                firstName: formData.firstName,
-
-                lastName: formData.lastName,
-
-                email: formData.email,
-
+            const response = await registerUser({
+                firstName: formData.firstName.trim(),
+                lastName: formData.lastName.trim(),
+                email: formData.email.trim(),
                 password: formData.password,
-
                 phoneNumber: formData.phoneNumber,
-
-                address: formData.address,
-
+                address: formData.address.trim(),
                 role: formData.role
-
-            };
-
-
-            console.log(
-                "Registration Data:",
-                registrationData
-            );
-
-
-            // Call Spring Boot API
-            const response =
-                await registerUser(registrationData);
-
-
-            console.log(
-                "Registration Response:",
-                response.data
-            );
-
-
-            // Success message
-            setSuccess(
-                response.data.message ||
-                "User registered successfully."
-            );
-
-
-            // Clear form
-            setFormData({
-                firstName: "",
-                lastName: "",
-                email: "",
-                password: "",
-                confirmPassword: "",
-                phoneNumber: "",
-                address: "",
-                role: "WORKER"
             });
-
-
-            // Redirect to login
-            setTimeout(() => {
-
-                navigate("/login");
-
-            }, 1500);
-
-
-        } catch (error) {
-
-            console.error(
-                "Registration Error:",
-                error
-            );
-
-
-            if (error.response) {
-
-                console.error(
-                    "Backend Response:",
-                    error.response.data
-                );
-
-
-                setError(
-                    error.response.data?.message ||
-                    "Registration failed."
-                );
-
-            } else {
-
-                setError(
-                    "Unable to connect to the server. Please make sure the backend is running."
-                );
-            }
-
+            setSuccess(response.data.message || "Account created successfully. You can now log in.");
+            setFormData(initialForm);
+            window.setTimeout(() => navigate("/login"), 1200);
+        } catch (requestError) {
+            setError(getApiErrorMessage(requestError, "Registration failed."));
         } finally {
-
             setLoading(false);
         }
     };
 
-
     return (
-        <>
-            <Navbar />
+        <div className="container py-5">
+            <div className="row justify-content-center">
+                <div className="col-lg-8">
+                    <div className="card auth-card border-0 shadow-sm">
+                        <div className="card-body p-4 p-md-5">
+                            <span className="eyebrow">Join WorkConnect</span>
+                            <h1 className="h2 fw-bold mt-2">Create your account</h1>
+                            <p className="text-secondary mb-4">Choose your role and start with a simple profile.</p>
 
-            <div className="container">
+                            {error && <div className="alert alert-danger">{error}</div>}
+                            {success && <div className="alert alert-success">{success}</div>}
 
-                <div className="row justify-content-center py-5">
-
-                    <div className="col-md-8 col-lg-7">
-
-                        <div className="card shadow border-0">
-
-                            <div className="card-body p-5">
-
-
-                                {/* ================= HEADER ================= */}
-
-                                <div className="text-center mb-4">
-
-                                    <h2 className="fw-bold">
-                                        Create Your Account
-                                    </h2>
-
-                                    <p className="text-muted">
-                                        Join WorkConnect today
-                                    </p>
-
-                                </div>
-
-
-                                {/* ================= ERROR ================= */}
-
-                                {error && (
-                                    <div
-                                        className="alert alert-danger"
-                                        role="alert"
-                                    >
-                                        {error}
+                            <form onSubmit={handleSubmit} noValidate>
+                                <div className="row g-3">
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="firstName">First name</label>
+                                        <input id="firstName" name="firstName" className="form-control" maxLength="30" value={formData.firstName} onChange={handleChange} />
                                     </div>
-                                )}
-
-
-                                {/* ================= SUCCESS ================= */}
-
-                                {success && (
-                                    <div
-                                        className="alert alert-success"
-                                        role="alert"
-                                    >
-                                        {success}
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="lastName">Last name</label>
+                                        <input id="lastName" name="lastName" className="form-control" maxLength="30" value={formData.lastName} onChange={handleChange} />
                                     </div>
-                                )}
-
-
-                                {/* ================= FORM ================= */}
-
-                                <form onSubmit={handleSubmit}>
-
-
-                                    {/* FIRST NAME + LAST NAME */}
-
-                                    <div className="row">
-
-                                        <div className="col-md-6 mb-3">
-
-                                            <label
-                                                htmlFor="firstName"
-                                                className="form-label fw-semibold"
-                                            >
-                                                First Name
-                                            </label>
-
-                                            <input
-                                                type="text"
-                                                id="firstName"
-                                                name="firstName"
-                                                className="form-control"
-                                                placeholder="Enter first name"
-                                                value={
-                                                    formData.firstName
-                                                }
-                                                onChange={
-                                                    handleChange
-                                                }
-                                                maxLength="30"
-                                                required
-                                            />
-
-                                        </div>
-
-
-                                        <div className="col-md-6 mb-3">
-
-                                            <label
-                                                htmlFor="lastName"
-                                                className="form-label fw-semibold"
-                                            >
-                                                Last Name
-                                            </label>
-
-                                            <input
-                                                type="text"
-                                                id="lastName"
-                                                name="lastName"
-                                                className="form-control"
-                                                placeholder="Enter last name"
-                                                value={
-                                                    formData.lastName
-                                                }
-                                                onChange={
-                                                    handleChange
-                                                }
-                                                maxLength="30"
-                                                required
-                                            />
-
-                                        </div>
-
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="email">Email</label>
+                                        <input id="email" name="email" type="email" className="form-control" value={formData.email} onChange={handleChange} />
                                     </div>
-
-
-                                    {/* EMAIL */}
-
-                                    <div className="mb-3">
-
-                                        <label
-                                            htmlFor="email"
-                                            className="form-label fw-semibold"
-                                        >
-                                            Email Address
-                                        </label>
-
-                                        <input
-                                            type="email"
-                                            id="email"
-                                            name="email"
-                                            className="form-control"
-                                            placeholder="Enter email address"
-                                            value={
-                                                formData.email
-                                            }
-                                            onChange={
-                                                handleChange
-                                            }
-                                            required
-                                        />
-
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="phoneNumber">Phone number</label>
+                                        <input id="phoneNumber" name="phoneNumber" className="form-control" inputMode="numeric" maxLength="10" value={formData.phoneNumber} onChange={handleChange} />
                                     </div>
-
-
-                                    {/* PHONE NUMBER */}
-
-                                    <div className="mb-3">
-
-                                        <label
-                                            htmlFor="phoneNumber"
-                                            className="form-label fw-semibold"
-                                        >
-                                            Phone Number
-                                        </label>
-
-                                        <input
-                                            type="tel"
-                                            id="phoneNumber"
-                                            name="phoneNumber"
-                                            className="form-control"
-                                            placeholder="Enter 10-digit phone number"
-                                            value={
-                                                formData.phoneNumber
-                                            }
-                                            onChange={
-                                                handleChange
-                                            }
-                                            maxLength="10"
-                                            pattern="[0-9]{10}"
-                                            required
-                                        />
-
+                                    <div className="col-12">
+                                        <label className="form-label" htmlFor="address">Address</label>
+                                        <textarea id="address" name="address" className="form-control" rows="2" maxLength="255" value={formData.address} onChange={handleChange} />
                                     </div>
-
-
-                                    {/* ADDRESS */}
-
-                                    <div className="mb-3">
-
-                                        <label
-                                            htmlFor="address"
-                                            className="form-label fw-semibold"
-                                        >
-                                            Address
-                                        </label>
-
-                                        <textarea
-                                            id="address"
-                                            name="address"
-                                            className="form-control"
-                                            rows="3"
-                                            placeholder="Enter your address"
-                                            value={
-                                                formData.address
-                                            }
-                                            onChange={
-                                                handleChange
-                                            }
-                                            maxLength="255"
-                                            required
-                                        />
-
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="password">Password</label>
+                                        <input id="password" name="password" type="password" className="form-control" value={formData.password} onChange={handleChange} />
                                     </div>
-
-
-                                    {/* PASSWORD */}
-
-                                    <div className="mb-3">
-
-                                        <label
-                                            htmlFor="password"
-                                            className="form-label fw-semibold"
-                                        >
-                                            Password
-                                        </label>
-
-                                        <input
-                                            type="password"
-                                            id="password"
-                                            name="password"
-                                            className="form-control"
-                                            placeholder="Enter password"
-                                            value={
-                                                formData.password
-                                            }
-                                            onChange={
-                                                handleChange
-                                            }
-                                            required
-                                        />
-
-                                        <small className="text-muted">
-                                            8-20 characters, including
-                                            uppercase, lowercase, number
-                                            and special character.
-                                        </small>
-
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="confirmPassword">Confirm password</label>
+                                        <input id="confirmPassword" name="confirmPassword" type="password" className="form-control" value={formData.confirmPassword} onChange={handleChange} />
                                     </div>
-
-
-                                    {/* CONFIRM PASSWORD */}
-
-                                    <div className="mb-3">
-
-                                        <label
-                                            htmlFor="confirmPassword"
-                                            className="form-label fw-semibold"
-                                        >
-                                            Confirm Password
-                                        </label>
-
-                                        <input
-                                            type="password"
-                                            id="confirmPassword"
-                                            name="confirmPassword"
-                                            className="form-control"
-                                            placeholder="Confirm password"
-                                            value={
-                                                formData.confirmPassword
-                                            }
-                                            onChange={
-                                                handleChange
-                                            }
-                                            required
-                                        />
-
-                                    </div>
-
-
-                                    {/* ROLE */}
-
-                                    <div className="mb-4">
-
-                                        <label
-                                            htmlFor="role"
-                                            className="form-label fw-semibold"
-                                        >
-                                            Register As
-                                        </label>
-
-                                        <select
-                                            id="role"
-                                            name="role"
-                                            className="form-select"
-                                            value={
-                                                formData.role
-                                            }
-                                            onChange={
-                                                handleChange
-                                            }
-                                            required
-                                        >
-
-                                            <option value="WORKER">
-                                                Worker
-                                            </option>
-
-                                            <option value="EMPLOYER">
-                                                Employer
-                                            </option>
-
+                                    <div className="col-md-6">
+                                        <label className="form-label" htmlFor="role">Register as</label>
+                                        <select id="role" name="role" className="form-select" value={formData.role} onChange={handleChange}>
+                                            <option value="WORKER">Worker</option>
+                                            <option value="EMPLOYER">Employer</option>
                                         </select>
-
                                     </div>
-
-
-                                    {/* SUBMIT */}
-
-                                    <button
-                                        type="submit"
-                                        className="btn btn-primary w-100 py-2"
-                                        disabled={loading}
-                                    >
-
-                                        {loading
-                                            ? "Creating Account..."
-                                            : "Create Account"
-                                        }
-
-                                    </button>
-
-                                </form>
-
-
-                                {/* LOGIN LINK */}
-
-                                <div className="text-center mt-4">
-
-                                    <p className="mb-0 text-muted">
-
-                                        Already have an account?{" "}
-
-                                        <Link
-                                            to="/login"
-                                            className="text-decoration-none fw-semibold"
-                                        >
-                                            Login
-                                        </Link>
-
-                                    </p>
-
                                 </div>
-
-                            </div>
-
+                                <p className="form-text mt-3">
+                                    Password: 8-20 characters with uppercase, lowercase, number, and a supported special character.
+                                </p>
+                                <button className="btn btn-primary w-100 mt-2" disabled={loading}>
+                                    {loading ? "Creating account..." : "Create Account"}
+                                </button>
+                            </form>
+                            <p className="text-center text-secondary mt-4 mb-0">
+                                Already registered? <Link to="/login">Login</Link>
+                            </p>
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-        </>
+        </div>
     );
 }
 

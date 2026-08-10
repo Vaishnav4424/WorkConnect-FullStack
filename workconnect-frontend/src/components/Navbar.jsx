@@ -1,172 +1,83 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
-
     const { user, isAuthenticated, logout } = useAuth();
-
     const navigate = useNavigate();
 
+    const navClass = ({ isActive }) => `nav-link${isActive ? " active" : ""}`;
+
     const handleLogout = () => {
-
         logout();
-
         navigate("/login");
     };
 
     return (
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
-
+        <nav className="navbar navbar-expand-lg navbar-dark site-navbar sticky-top">
             <div className="container">
-
-                {/* Logo */}
-                <Link
-                    className="navbar-brand fw-bold"
-                    to="/"
-                >
-                    WorkConnect
+                <Link className="navbar-brand fw-bold" to="/">
+                    Work<span>Connect</span>
                 </Link>
 
-
-                {/* Mobile Toggle */}
                 <button
                     className="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
-                    data-bs-target="#navbarContent"
+                    data-bs-target="#workconnectNavbar"
+                    aria-controls="workconnectNavbar"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
                 >
-                    <span className="navbar-toggler-icon"></span>
+                    <span className="navbar-toggler-icon" />
                 </button>
 
-
-                <div
-                    className="collapse navbar-collapse"
-                    id="navbarContent"
-                >
-
-                    {/* Left Menu */}
-                    <ul className="navbar-nav me-auto">
-
+                <div className="collapse navbar-collapse" id="workconnectNavbar">
+                    <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                         <li className="nav-item">
-                            <Link
-                                className="nav-link"
-                                to="/"
-                            >
-                                Home
-                            </Link>
+                            <NavLink className={navClass} to="/" end>Home</NavLink>
                         </li>
 
+                        {isAuthenticated && user.role === "WORKER" && (
+                            <>
+                                <li className="nav-item"><NavLink className={navClass} to="/worker/dashboard">Dashboard</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/worker/jobs">Find Jobs</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/worker/applications">Applications</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/worker/contracts">Contracts</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/worker/profile">Profile</NavLink></li>
+                            </>
+                        )}
 
-                        {/* Worker Menu */}
-                        {isAuthenticated &&
-                            user.role === "WORKER" && (
-                                <>
-                                    <li className="nav-item">
-                                        <Link
-                                            className="nav-link"
-                                            to="/worker/jobs"
-                                        >
-                                            Find Jobs
-                                        </Link>
-                                    </li>
-
-                                    <li className="nav-item">
-                                        <Link
-                                            className="nav-link"
-                                            to="/worker/applications"
-                                        >
-                                            Applications
-                                        </Link>
-                                    </li>
-
-                                    <li className="nav-item">
-                                        <Link
-                                            className="nav-link"
-                                            to="/worker/contracts"
-                                        >
-                                            Contracts
-                                        </Link>
-                                    </li>
-                                </>
-                            )}
-
-
-                        {/* Employer Menu */}
-                        {isAuthenticated &&
-                            user.role === "EMPLOYER" && (
-                                <>
-                                    <li className="nav-item">
-                                        <Link
-                                            className="nav-link"
-                                            to="/employer/jobs"
-                                        >
-                                            My Jobs
-                                        </Link>
-                                    </li>
-
-                                    <li className="nav-item">
-                                        <Link
-                                            className="nav-link"
-                                            to="/employer/jobs/create"
-                                        >
-                                            Post Job
-                                        </Link>
-                                    </li>
-
-                                    <li className="nav-item">
-                                        <Link
-                                            className="nav-link"
-                                            to="/employer/contracts"
-                                        >
-                                            Contracts
-                                        </Link>
-                                    </li>
-                                </>
-                            )}
-
+                        {isAuthenticated && user.role === "EMPLOYER" && (
+                            <>
+                                <li className="nav-item"><NavLink className={navClass} to="/employer/dashboard">Dashboard</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/employer/jobs">My Jobs</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/employer/jobs/create">Post Job</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/employer/contracts">Contracts</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/employer/payments">Payments</NavLink></li>
+                                <li className="nav-item"><NavLink className={navClass} to="/employer/profile">Profile</NavLink></li>
+                            </>
+                        )}
                     </ul>
 
-
-                    {/* Right Menu */}
-                    <div className="d-flex align-items-center gap-2">
-
+                    <div className="d-flex flex-column flex-lg-row align-items-lg-center gap-2">
                         {!isAuthenticated ? (
                             <>
-                                <Link
-                                    to="/login"
-                                    className="btn btn-outline-light"
-                                >
-                                    Login
-                                </Link>
-
-                                <Link
-                                    to="/register"
-                                    className="btn btn-primary"
-                                >
-                                    Register
-                                </Link>
+                                <Link to="/login" className="btn btn-outline-light">Login</Link>
+                                <Link to="/register" className="btn btn-primary">Register</Link>
                             </>
                         ) : (
                             <>
-                                <span className="text-white me-2">
+                                <span className="navbar-text text-white me-lg-2">
                                     Hi, {user.firstName}
                                 </span>
-
-                                <button
-                                    onClick={handleLogout}
-                                    className="btn btn-outline-light"
-                                >
+                                <button onClick={handleLogout} className="btn btn-outline-light">
                                     Logout
                                 </button>
                             </>
                         )}
-
                     </div>
-
                 </div>
-
             </div>
-
         </nav>
     );
 }

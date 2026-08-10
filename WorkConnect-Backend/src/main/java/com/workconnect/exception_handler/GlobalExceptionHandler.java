@@ -18,6 +18,7 @@ import com.workconnect.custom_exceptions.BadRequestException;
 import com.workconnect.custom_exceptions.DuplicateResourceException;
 import com.workconnect.custom_exceptions.InvalidInputException;
 import com.workconnect.custom_exceptions.ResourceNotFoundException;
+import com.workconnect.custom_exceptions.PaymentProcessingException;
 import com.workconnect.dtos.ErrorResponse;
 
 @RestControllerAdvice
@@ -131,6 +132,19 @@ public class GlobalExceptionHandler {
                 "Failed",
                 "Validation Failed",
                 fieldErrors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+    
+    @ExceptionHandler(PaymentProcessingException.class)
+    public ResponseEntity<ErrorResponse> handlePaymentProcessingException(PaymentProcessingException e) {
+
+        ErrorResponse response = new ErrorResponse(
+                LocalDateTime.now(),
+                "Failed",
+                e.getMessage(),
+                null
+        );
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
